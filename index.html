@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Space Runner 3D - Enhanced</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Orbitron', 'Courier New', monospace;
+            color: #00ff00;
+        }
+        
+        canvas {
+            display: block;
+        }
+        /* MENÚ PRINCIPAL */
+        
+        #main-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000011, #001122);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            background-image: radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 40px), radial-gradient(white, rgba(255, 255, 255, .15) 1px, transparent 30px), radial-gradient(white, rgba(255, 255, 255, .1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                background-position: 0 0, 40px 60px, 130px 270px;
+            }
+            100% {
+                background-position: 550px 550px, 390px 410px, 680px 820px;
+            }
+        }
+        
+        #main-menu h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin: 0 0 2rem 0;
+            text-align: center;
+            background: linear-gradient(45deg, #00ff00, #00ccff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from {
+                filter: brightness(1) drop-shadow(0 0 20px #00ff00);
+            }
+            to {
+                filter: brightness(1.2) drop-shadow(0 0 30px #00ccff);
+            }
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .menu-btn {
+            background: linear-gradient(45deg, rgba(0, 255, 0, 0.1), rgba(0, 204, 255, 0.1));
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            text-transform: uppercase;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+        }
+        
+        .menu-btn:hover {
+            background: linear-gradient(45deg, rgba(0, 255, 0, 0.3), rgba(0, 204, 255, 0.3));
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            transform: translateY(-2px);
+        }
+        /* PANTALLA DE CONFIGURACIÓN */
+        
+        #settings-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 17, 0.95);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .settings-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, rgba(0, 17, 34, 0.9), rgba(0, 34, 68, 0.9));
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #00ff00;
+            backdrop-filter: blur(20px);
+            min-width: 400px;
+        }
+        
+        .settings-content h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #00ff00;
+        }
+        
+        .setting-item {
+            margin: 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .setting-item label {
+            color: #00ccff;
+            font-weight: 600;
+        }
+        
+        .setting-item select,
+        .setting-item input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: 'Orbitron', monospace;
+        }
+        /* HUD MEJORADO */
+        
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff00;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        #hud div {
+            margin: 8px 0;
+            font-size: 18px;
+            text-shadow: 0 0 10px #00ff00;
+            font-weight: 600;
+        }
+        
+        #level-display {
+            font-size: 22px;
+            color: #00ccff;
+            font-weight: 700;
+        }
+        
+        #health-bar,
+        #boost-bar {
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+            position: relative;
+        }
+        
+        #health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00);
+            transition: width 0.3s ease;
+            width: 100%;
+        }
+        
+        #boost-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #00ccff);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        /* INDICADORES DE POWER-UPS */
+        
+        .power-up-indicator {
+            position: absolute;
+            top: 160px;
+            left: 20px;
+            background: rgba(0, 255, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid #00ff00;
+            display: none;
+            animation: pulse 1s infinite;
+            backdrop-filter: blur(5px);
+        }
+        
+        #combo-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 0, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff00ff;
+            display: none;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        /* GAME OVER MEJORADO */
+        
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, rgba(0, 0, 0, 0.95), rgba(17, 0, 17, 0.95));
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ff0000;
+            text-align: center;
+            display: none;
+            z-index: 200;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);
+        }
+        
+        #game-over h1 {
+            color: #ff0000;
+            font-size: 3rem;
+            margin: 0 0 20px 0;
+            text-shadow: 0 0 30px #ff0000;
+            font-weight: 900;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .stat-item {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #00ff00;
+        }
+        /* CONTROLES MEJORADOS */
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #00ff00;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        /* EFECTOS ESPECIALES */
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            75% {
+                transform: translateX(5px);
+            }
+        }
+        
+        .damage-effect {
+            animation: shake 0.5s ease-in-out;
+        }
+        /* PANTALLA DE PAUSA */
+        
+        #pause-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+            backdrop-filter: blur(10px);
+        }
+        
+        .pause-content {
+            background: linear-gradient(45deg, rgba(0, 17, 34, 0.9), rgba(0, 34, 68, 0.9));
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #00ff00;
+            text-align: center;
+            backdrop-filter: blur(20px);
+        }
+        /* RESPONSIVO */
+        
+        @media (max-width: 768px) {
+            #main-menu h1 {
+                font-size: 2.5rem;
+            }
+            .menu-btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+            #hud {
+                padding: 15px;
+            }
+            #instructions {
+                font-size: 12px;
+            }
+        }
+        
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 10px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .btn:hover {
+            background: #00cc00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- MENÚ PRINCIPAL -->
+    <div id="main-menu">
+        <h1>SPACE RUNNER 3D</h1>
+        <div class="menu-buttons">
+            <button class="menu-btn" id="start-game">INICIAR JUEGO</button>
+            <button class="menu-btn" id="settings-btn">CONFIGURACIÓN</button>
+            <button class="menu-btn" id="leaderboard-btn">PUNTUACIONES</button>
+            <button class="menu-btn" id="instructions-btn">INSTRUCCIONES</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE CONFIGURACIÓN -->
+    <div id="settings-menu">
+        <div class="settings-content">
+            <h2>CONFIGURACIÓN</h2>
+            <div class="setting-item">
+                <label>Dificultad:</label>
+                <select id="difficulty-select">
+                    <option value="easy">Fácil</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="hard">Difícil</option>
+                    <option value="insane">Extremo</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>Sensibilidad:</label>
+                <input type="range" id="sensitivity-slider" min="0.1" max="1" step="0.1" value="0.3">
+            </div>
+            <div class="setting-item">
+                <label>Efectos Visuales:</label>
+                <select id="graphics-select">
+                    <option value="low">Bajos</option>
+                    <option value="medium" selected>Medios</option>
+                    <option value="high">Altos</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>Nave:</label>
+                <select id="ship-select">
+                    <option value="default" selected>Clásica</option>
+                    <option value="fighter">Caza</option>
+                    <option value="cruiser">Crucero</option>
+                </select>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-secondary" id="back-to-menu">VOLVER</button>
+                <button class="btn" id="save-settings">GUARDAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE PAUSA -->
+    <div id="pause-menu">
+        <div class="pause-content">
+            <h2>JUEGO PAUSADO</h2>
+            <button class="btn" id="resume-game">CONTINUAR</button>
+            <button class="btn btn-secondary" id="restart-from-pause">REINICIAR</button>
+            <button class="btn btn-secondary" id="main-menu-from-pause">MENÚ PRINCIPAL</button>
+        </div>
+    </div>
+
+    <!-- HUD DEL JUEGO -->
+    <div id="hud" style="display: none;">
+        <div id="level-display">Nivel: <span id="current-level">1</span></div>
+        <div>Puntuación: <span id="score">0</span></div>
+        <div>Velocidad: <span id="speed">1.0</span>x</div>
+        <div>Combo: <span id="combo-count">0</span>x</div>
+        <div>Vida:</div>
+        <div id="health-bar">
+            <div id="health-fill"></div>
+        </div>
+        <div>Boost:</div>
+        <div id="boost-bar">
+            <div id="boost-fill"></div>
+        </div>
+    </div>
+
+    <!-- INDICADORES -->
+    <div id="power-up-indicator" class="power-up-indicator">
+        <span id="power-up-text">¡INVENCIBLE!</span> <span id="power-timer"></span>s
+    </div>
+
+    <div id="combo-indicator">
+        <div>COMBO x<span id="combo-multiplier">1</span></div>
+        <div style="font-size: 0.8em;">+<span id="combo-points">0</span> puntos</div>
+    </div>
+
+    <!-- INSTRUCCIONES -->
+    <div id="instructions" style="display: none;">
+        <strong>Controles Avanzados:</strong>
+        <div class="controls-grid">
+            <div>WASD/Flechas - Mover</div>
+            <div>Espacio - Turbo</div>
+            <div>Shift - Boost Especial</div>
+            <div>ESC - Pausa</div>
+        </div>
+        <br>
+        <strong>Power-ups:</strong><br> 🟢 Verde - Invencibilidad<br> 🔵 Azul - Puntos Extra<br> ⚡ Amarillo - Velocidad<br> 💎 Púrpura - Multiplicador<br> ❤️ Rojo - Vida Extra
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="game-over">
+        <h1>GAME OVER</h1>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <strong>Puntuación Final:</strong><br>
+                <span id="final-score">0</span>
+            </div>
+            <div class="stat-item">
+                <strong>Mejor Puntuación:</strong><br>
+                <span id="best-score">0</span>
+            </div>
+            <div class="stat-item">
+                <strong>Nivel Alcanzado:</strong><br>
+                <span id="final-level">1</span>
+            </div>
+            <div class="stat-item">
+                <strong>Tiempo Jugado:</strong><br>
+                <span id="play-time">0:00</span>
+            </div>
+        </div>
+        <button class="btn" id="restart-btn">REINICIAR</button>
+        <button class="btn btn-secondary" id="menu-btn">MENÚ PRINCIPAL</button>
+    </div>
+
+    <!-- SCRIPTS DE THREE.JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- SCRIPTS DEL JUEGO - SIN type="module" -->
+    <script src="js/config.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/audioManager.js"></script>
+    <script src="js/modelLoader.js"></script>
+    <script src="js/ship.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- SCRIPT DE VERIFICACIÓN -->
+    <script>
+        // Verificar que todo se carga correctamente
+        console.log('🎮 HTML cargado');
+        console.log('📦 Three.js:', typeof THREE !== 'undefined' ? '✅ Cargado' : '❌ ERROR');
+
+        // Verificar archivos JS después de un momento
+        setTimeout(() => {
+            console.log('🔧 Config:', typeof GAME_CONFIG !== 'undefined' ? '✅ Cargado' : '❌ ERROR');
+            console.log('🎮 GameState:', typeof gameState !== 'undefined' ? '✅ Cargado' : '❌ ERROR');
+            console.log('🔊 AudioManager:', typeof audioManager !== 'undefined' ? '✅ Cargado' : '❌ ERROR');
+            console.log('📦 ModelLoader:', typeof modelLoader !== 'undefined' ? '✅ Cargado' : '❌ ERROR');
+            console.log('🚀 Ship:', typeof ship !== 'undefined' ? '✅ Cargado' : '❌ ERROR');
+            console.log('🎯 Game:', typeof game !== 'undefined' ? '✅ Cargado' : '❌ ERROR');
+
+            // Verificar botón
+            const startBtn = document.getElementById('start-game');
+            console.log('🎮 Botón Start encontrado:', startBtn ? '✅ SÍ' : '❌ NO');
+
+            if (typeof game !== 'undefined') {
+                console.log('🚀 ¡Todo listo! Puedes hacer clic en INICIAR JUEGO');
+            } else {
+                console.error('❌ Error: El juego no se inicializó correctamente');
+            }
+        }, 100);
+    </script>
+</body>
+
+</html>
